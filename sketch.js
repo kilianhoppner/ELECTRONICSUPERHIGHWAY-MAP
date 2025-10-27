@@ -32,7 +32,8 @@ const solarGradientColors = [
 // Agent settings
 let agentScaleFactor = 0.00003; 
 let agentSize = 11; 
-let agentSpeed = 1; // fixed speed per frame
+let agentSpeed = 10; // pixels per second
+let rotationSpeed = 3.0; // radians per second for smooth rotation
 
 // =========================
 // --- STATE NAME MAPPING ---
@@ -68,7 +69,9 @@ let stateCentroids = {};
 let mapScale, offsetX, offsetY;
 let lonMin, lonMax, latMin, latMax;
 let condensedFont, customFont;
-let isPaused = false; // For spacebar pause/resume
+let isPaused = false; 
+let showMap = true;
+let lastTime = 0;
 
 // =========================
 // --- SETUP & DRAW ---
@@ -86,6 +89,7 @@ function setup() {
   calculateCentroids();
   prepareAgents();
   frameRate(60);
+  lastTime = millis();
 }
 
 function windowResized() {
@@ -100,18 +104,22 @@ function windowResized() {
 // =========================
 function draw() {
   background(0);
+  let currentTime = millis();
+  let deltaTimeSec = (currentTime - lastTime) / 1000.0;
+  lastTime = currentTime;
 
-  if (sudanGeo) {
+  if (sudanGeo && showMap) {
     drawSolarMapGradient();  
     drawGeoJSON(sudanGeo);  
-    drawGrid();
     drawLabels(sudanGeo);
+  }
 
-    if (!isPaused) {
-      updateAndDrawAgents();
-    } else {
-      drawAgentsOnly();
-    }
+  drawGrid();
+
+  if (!isPaused) {
+    updateAndDrawAgents(deltaTimeSec);
+  } else {
+    drawAgentsOnly();
   }
 }
 
@@ -122,31 +130,36 @@ function drawAgentsOnly() {
   fill(0, 255, 0);
   stroke(0);
   strokeWeight(1);
-
   for (let a of agents) {
-    let angle = atan2(a.currentTarget[1] - a.y, a.currentTarget[0] - a.x);
-    push();
-    translate(a.x, a.y);
-    rotate(angle + PI/2);
-    beginShape();
-    vertex(0, -agentSize*0.5);
-    vertex(-agentSize*0.5, agentSize*0.5);
-    vertex(agentSize*0.5, agentSize*0.5);
-    endShape(CLOSE);
-    pop();
+    drawAgentTriangle(a);
   }
+}
+
+function drawAgentTriangle(a) {
+  push();
+  translate(a.x, a.y);
+  rotate(a.rotation + PI / 2);
+  beginShape();
+  vertex(0, -agentSize * 0.5);
+  vertex(-agentSize * 0.5, agentSize * 0.5);
+  vertex(agentSize * 0.5, agentSize * 0.5);
+  endShape(CLOSE);
+  pop();
 }
 
 // =========================
 // --- KEYBOARD HANDLING ---
 // =========================
 function keyPressed() {
-  if (key === ' ') { // Spacebar to pause/resume
+  if (key === ' ') {
     isPaused = !isPaused;
   }
-  if (key === 'F' || key === 'f') { // F to toggle fullscreen
+  if (key === 'F' || key === 'f') {
     let fs = fullscreen();
     fullscreen(!fs);
+  }
+  if (key === 'H' || key === 'h') {
+    showMap = !showMap;
   }
 }
 
@@ -167,16 +180,13 @@ function drawSolarMapGradient() {
         let lon = c[0];
         let lat = c[1];
         let [x, y] = project(lon, lat);
-
         let tLon = map(lon, lonMin, lonMax, 0.3, 1); 
         let tLat = map(lat, latMin, latMax, 1, 0); 
         let t = (0.45 * tLon + 0.75 * tLat) / 1.2;
         t = constrain(t, 0, 1);
-
         let idx = floor(t * (colors.length - 1));
         let frac = t * (colors.length - 1) - idx;
         let cColor = lerpColor(colors[idx], colors[min(idx + 1, colors.length - 1)], frac);
-
         fill(cColor);
         vertex(x, y);
       }
@@ -186,12 +196,11 @@ function drawSolarMapGradient() {
 }
 
 // =========================
-// --- MAP PROJECTION & GEOJSON ---
+// --- MAP PROJECTION ---
 // =========================
 function calculateProjection() {
   let bounds = getBounds(sudanGeo);
   lonMin = bounds[0]; latMin = bounds[1]; lonMax = bounds[2]; latMax = bounds[3];
-
   let lonRange = lonMax - lonMin;
   let latRange = latMax - latMin;
   let mapAspect = lonRange / latRange;
@@ -218,7 +227,6 @@ function drawGeoJSON(geo) {
   noFill();
   stroke(0);
   strokeWeight(strokeWeightMap);
-
   for (let feature of geo.features) {
     let geom = feature.geometry;
     if (geom.type === "Polygon") drawPolygon(geom.coordinates);
@@ -272,7 +280,7 @@ function drawLabels(geo) {
 }
 
 // =========================
-// --- CENTROIDS & BOUNDS ---
+// --- CENTROIDS & GRID ---
 // =========================
 function polygonCentroid(ring) {
   let area = 0, cx = 0, cy = 0;
@@ -334,7 +342,6 @@ function drawGrid() {
   }
 
   drawingContext.setLineDash([]);
-
   textFont(customFont); 
   textSize(gridFontSize);
   fill(220,130);
@@ -402,6 +409,7 @@ function prepareAgents() {
       for (let i = 0; i < nAgents; i++) {
         let start = randomPointInPolygons(originPolygons);
         let end = randomPointInPolygons(destPolygons);
+        let initialAngle = atan2(end[1] - start[1], end[0] - start[0]);
 
         agents.push({
           x: start[0],
@@ -410,7 +418,10 @@ function prepareAgents() {
           targetPos: end,
           currentTarget: end,
           origin: origin,
-          destination: dest
+          destination: dest,
+          pauseFrames: 0,
+          rotation: initialAngle,
+          targetRotation: initialAngle
         });
       }
     }
@@ -424,50 +435,53 @@ function randomPointInPolygons(polygons) {
     let xs = poly.map(c => project(c[0], c[1])[0]);
     let ys = poly.map(c => project(c[0], c[1])[1]);
     let minX = min(xs), maxX = max(xs), minY = min(ys), maxY = max(ys);
-
     let x = random(minX, maxX);
     let y = random(minY, maxY);
-
-    if (pointInPolygon([x, y], poly.map(c => project(c[0], c[1])))) {
-      return [x, y];
-    }
+    if (pointInPolygon([x, y], poly.map(c => project(c[0], c[1])))) return [x, y];
   }
   return polygonCentroid(polygons[0][0]);
 }
 
-function updateAndDrawAgents() {
+function updateAndDrawAgents(dt) {
   fill(0, 255, 0);
   stroke(0);
   strokeWeight(1);
 
   for (let a of agents) {
-    if (a.pauseFrames && a.pauseFrames > 0) {
+    if (a.pauseFrames > 0) {
       a.pauseFrames--;
+
+      // Trigger rotation only AFTER pause finishes
+      if (a.pauseFrames === 0) {
+        a.targetRotation = a.rotation + PI; // smooth 180° flip
+      }
     } else {
       let dx = a.currentTarget[0] - a.x;
       let dy = a.currentTarget[1] - a.y;
-      let distToTarget = sqrt(dx*dx + dy*dy);
+      let distToTarget = sqrt(dx * dx + dy * dy);
+      let step = agentSpeed * dt;
 
-      if (distToTarget > 1) {
-        a.x += dx * agentSpeed / distToTarget;
-        a.y += dy * agentSpeed / distToTarget;
+      if (distToTarget > step) {
+        a.x += dx * (step / distToTarget);
+        a.y += dy * (step / distToTarget);
+        a.targetRotation = atan2(dy, dx); // face movement direction
       } else {
+        // Swap target, then start pause
         a.currentTarget = (a.currentTarget === a.targetPos) ? a.originPos : a.targetPos;
-        a.pauseFrames = 120;
+        a.pauseFrames = 120; // pause before rotation
       }
     }
 
-    let angle = atan2(a.currentTarget[1] - a.y, a.currentTarget[0] - a.x);
-    push();
-    translate(a.x, a.y);
-    rotate(angle + PI/2);
-    beginShape();
-    vertex(0, -agentSize*0.5);
-    vertex(-agentSize*0.5, agentSize*0.5);
-    vertex(agentSize*0.5, agentSize*0.5);
-    endShape(CLOSE);
-    pop();
+    // Smooth rotation interpolation
+    a.rotation = lerpAngle(a.rotation, a.targetRotation, min(1, rotationSpeed * dt));
+
+    drawAgentTriangle(a);
   }
+}
+
+function lerpAngle(a, b, t) {
+  let diff = (b - a + PI) % (2 * PI) - PI;
+  return a + diff * t;
 }
 
 function pointInPolygon(point, vs) {
@@ -476,7 +490,6 @@ function pointInPolygon(point, vs) {
   for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
     let xi = vs[i][0], yi = vs[i][1];
     let xj = vs[j][0], yj = vs[j][1];
-
     let intersect = ((yi > y) != (yj > y)) &&
                     (x < (xj - xi) * (y - yi) / (yj - yi + 0.0000001) + xi);
     if (intersect) inside = !inside;
