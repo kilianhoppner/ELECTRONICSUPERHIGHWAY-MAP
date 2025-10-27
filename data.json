@@ -1,0 +1,579 @@
+{
+    "source": "DTM Sudan",
+    "report_date": "30-Sep-2025",
+    "description": "Data on Internally Displaced Persons (IDPs) by state of displacement, state of origin, and nationality.",
+    "data": [ 
+        {
+        "state_of_displacement": "Aj Jazirah",
+        "state_code": "SD15",
+        "IDPs": 117029,
+        "HHs": 23375,
+        "by_state_of_origin": {
+          "Aj Jazirah": 5259,
+          "Blue Nile": 185,
+          "Central Darfur": 0,
+          "East Darfur": 30,
+          "Gedaref": 0,
+          "Kassala": 0,
+          "Khartoum": 108390,
+          "North Darfur": 170,
+          "North Kordofan": 860,
+          "Northern": 0,
+          "Red Sea": 0,
+          "River Nile": 0,
+          "Sennar": 70,
+          "South Darfur": 115,
+          "South Kordofan": 340,
+          "West Darfur": 135,
+          "West Kordofan": 240,
+          "White Nile": 1235
+        },
+        "nationality": {
+          "Sudanese": 117029,
+          "Non_Sudanese": 0
+        }
+      },
+      {
+        "state_of_displacement": "Blue Nile",
+        "state_code": "SD08",
+        "IDPs": 362073,
+        "HHs": 72780,
+        "by_state_of_origin": {
+          "Aj Jazirah": 26651,
+          "Blue Nile": 202647,
+          "Central Darfur": 122,
+          "East Darfur": 0,
+          "Gedaref": 357,
+          "Kassala": 0,
+          "Khartoum": 102927,
+          "North Darfur": 105,
+          "North Kordofan": 768,
+          "Northern": 0,
+          "Red Sea": 0,
+          "River Nile": 55,
+          "Sennar": 26860,
+          "South Darfur": 580,
+          "South Kordofan": 916,
+          "West Darfur": 25,
+          "West Kordofan": 0,
+          "White Nile": 60
+        },
+        "nationality": {
+          "Sudanese": 362038,
+          "Non_Sudanese": 35
+        }
+      },
+      {
+        "state_of_displacement": "Central Darfur",
+        "state_code": "SD06",
+        "IDPs": 978357,
+        "HHs": 203235,
+        "by_state_of_origin": {
+          "Aj Jazirah": 190,
+          "Blue Nile": 0,
+          "Central Darfur": 682980,
+          "East Darfur": 0,
+          "Gedaref": 0,
+          "Kassala": 0,
+          "Khartoum": 3681,
+          "North Darfur": 179677,
+          "North Kordofan": 23,
+          "Northern": 0,
+          "Red Sea": 0,
+          "River Nile": 0,
+          "Sennar": 0,
+          "South Darfur": 0,
+          "South Kordofan": 37898,
+          "West Darfur": 3425,
+          "West Kordofan": 70058,
+          "White Nile": 425
+        },
+        "nationality": {
+          "Sudanese": 978357,
+          "Non_Sudanese": 0
+        }
+      },
+      {
+        "state_of_displacement": "East Darfur",
+        "state_code": "SD05",
+        "IDPs": 807744,
+        "HHs": 159048,
+        "by_state_of_origin": {
+          "Aj Jazirah": 1151,
+          "Blue Nile": 205,
+          "Central Darfur": 1450,
+          "East Darfur": 160235,
+          "Gedaref": 0,
+          "Kassala": 0,
+          "Khartoum": 366838,
+          "North Darfur": 52713,
+          "North Kordofan": 4727,
+          "Northern": 0,
+          "Red Sea": 0,
+          "River Nile": 0,
+          "Sennar": 310,
+          "South Darfur": 214440,
+          "South Kordofan": 100,
+          "West Darfur": 25,
+          "West Kordofan": 5550,
+          "White Nile": 0
+        },
+        "nationality": {
+          "Sudanese": 807744,
+          "Non_Sudanese": 0
+        }
+      },
+      {
+        "state_of_displacement": "Gedaref",
+        "state_code": "SD12",
+        "IDPs": 335969,
+        "HHs": 66979,
+        "by_state_of_origin": {
+          "Aj Jazirah": 48258,
+          "Blue Nile": 6058,
+          "Central Darfur": 1540,
+          "East Darfur": 250,
+          "Gedaref": 6453,
+          "Kassala": 0,
+          "Khartoum": 246650,
+          "North Darfur": 1575,
+          "North Kordofan": 355,
+          "Northern": 0,
+          "Red Sea": 0,
+          "River Nile": 0,
+          "Sennar": 21315,
+          "South Darfur": 830,
+          "South Kordofan": 410,
+          "West Darfur": 1275,
+          "West Kordofan": 0,
+          "White Nile": 1000
+        },
+        "nationality": {
+          "Sudanese": 335769,
+          "Non_Sudanese": 200
+        }
+      },
+      {
+        "state_of_displacement": "Kassala",
+        "state_code": "SD11",
+        "IDPs": 68380,
+        "HHs": 13507,
+        "by_state_of_origin": {
+          "Aj Jazirah": 23825,
+          "Blue Nile": 0,
+          "Central Darfur": 0,
+          "East Darfur": 0,
+          "Gedaref": 0,
+          "Kassala": 6540,
+          "Khartoum": 36870,
+          "North Darfur": 0,
+          "North Kordofan": 0,
+          "Northern": 0,
+          "Red Sea": 0,
+          "River Nile": 0,
+          "Sennar": 1145,
+          "South Darfur": 0,
+          "South Kordofan": 0,
+          "West Darfur": 0,
+          "West Kordofan": 0,
+          "White Nile": 0
+        },
+        "nationality": {
+          "Sudanese": 67730,
+          "Non_Sudanese": 650
+        }
+      },
+      {
+        "state_of_displacement": "Khartoum",
+        "state_code": "SD01",
+        "IDPs": 344150,
+        "HHs": 68430,
+        "by_state_of_origin": {
+          "Aj Jazirah": 21293,
+          "Blue Nile": 541,
+          "Central Darfur": 919,
+          "East Darfur": 2155,
+          "Gedaref": 0,
+          "Kassala": 0,
+          "Khartoum": 269812,
+          "North Darfur": 11254,
+          "North Kordofan": 22018,
+          "Northern": 0,
+          "Red Sea": 0,
+          "River Nile": 16,
+          "Sennar": 2136,
+          "South Darfur": 2290,
+          "South Kordofan": 4174,
+          "West Darfur": 1357,
+          "West Kordofan": 2929,
+          "White Nile": 3256
+        },
+        "nationality": {
+          "Sudanese": 342502,
+          "Non_Sudanese": 1648
+        }
+      },
+      {
+        "state_of_displacement": "North Darfur",
+        "state_code": "SD02",
+        "IDPs": 1756232,
+        "HHs": 355926,
+        "by_state_of_origin": {
+          "Aj Jazirah": 0,
+          "Blue Nile": 0,
+          "Central Darfur": 27120,
+          "East Darfur": 5873,
+          "Gedaref": 0,
+          "Kassala": 0,
+          "Khartoum": 8010,
+          "North Darfur": 1649535,
+          "North Kordofan": 125,
+          "Northern": 0,
+          "Red Sea": 0,
+          "River Nile": 0,
+          "Sennar": 0,
+          "South Darfur": 40171,
+          "South Kordofan": 5,
+          "West Darfur": 24806,
+          "West Kordofan": 587,
+          "White Nile": 0
+        },
+        "nationality": {
+          "Sudanese": 1755080,
+          "Non_Sudanese": 1152
+        }
+      },
+      {
+        "state_of_displacement": "North Kordofan",
+        "state_code": "SD13",
+        "IDPs": 222480,
+        "HHs": 42969,
+        "by_state_of_origin": {
+          "Aj Jazirah": 610,
+          "Blue Nile": 992,
+          "Central Darfur": 756,
+          "East Darfur": 61,
+          "Gedaref": 20,
+          "Kassala": 0,
+          "Khartoum": 111062,
+          "North Darfur": 512,
+          "North Kordofan": 59323,
+          "Northern": 0,
+          "Red Sea": 10,
+          "River Nile": 5,
+          "Sennar": 30,
+          "South Darfur": 619,
+          "South Kordofan": 34813,
+          "West Darfur": 235,
+          "West Kordofan": 13257,
+          "White Nile": 175
+        },
+        "nationality": {
+          "Sudanese": 215979,
+          "Non_Sudanese": 6501
+        }
+      },
+      {
+        "state_of_displacement": "Northern",
+        "state_code": "SD17",
+        "IDPs": 506158,
+        "HHs": 103359,
+        "by_state_of_origin": {
+          "Aj Jazirah": 32112,
+          "Blue Nile": 0,
+          "Central Darfur": 0,
+          "East Darfur": 95,
+          "Gedaref": 854,
+          "Kassala": 255,
+          "Khartoum": 423638,
+          "North Darfur": 19838,
+          "North Kordofan": 6747,
+          "Northern": 7326,
+          "Red Sea": 0,
+          "River Nile": 20,
+          "Sennar": 7965,
+          "South Darfur": 715,
+          "South Kordofan": 4113,
+          "West Darfur": 125,
+          "West Kordofan": 1656,
+          "White Nile": 699
+        },
+        "nationality": {
+          "Sudanese": 505328,
+          "Non_Sudanese": 830
+        }
+      },
+      {
+        "state_of_displacement": "Red Sea",
+        "state_code": "SD10",
+        "IDPs": 103073,
+        "HHs": 22241,
+        "by_state_of_origin": {
+          "Aj Jazirah": 5694,
+          "Blue Nile": 183,
+          "Central Darfur": 96,
+          "East Darfur": 64,
+          "Gedaref": 190,
+          "Kassala": 30,
+          "Khartoum": 49001,
+          "North Darfur": 8412,
+          "North Kordofan": 4653,
+          "Northern": 0,
+          "Red Sea": 25054,
+          "River Nile": 145,
+          "Sennar": 3371,
+          "South Darfur": 2644,
+          "South Kordofan": 2845,
+          "West Darfur": 165,
+          "West Kordofan": 91,
+          "White Nile": 435
+        },
+        "nationality": {
+          "Sudanese": 94829,
+          "Non_Sudanese": 8244
+        }
+      },
+      {
+        "state_of_displacement": "River Nile",
+        "state_code": "SD16",
+        "IDPs": 458041,
+        "HHs": 91563,
+        "by_state_of_origin": {
+          "Aj Jazirah": 30688,
+          "Blue Nile": 45,
+          "Central Darfur": 278,
+          "East Darfur": 85,
+          "Gedaref": 0,
+          "Kassala": 0,
+          "Khartoum": 396551,
+          "North Darfur": 1500,
+          "North Kordofan": 922,
+          "Northern": 0,
+          "Red Sea": 0,
+          "River Nile": 15273,
+          "Sennar": 11391,
+          "South Darfur": 163,
+          "South Kordofan": 230,
+          "West Darfur": 915,
+          "West Kordofan": 0,
+          "White Nile": 0
+        },
+        "nationality": {
+          "Sudanese": 457814,
+          "Non_Sudanese": 227
+        }
+      },
+      {
+        "state_of_displacement": "Sennar",
+        "state_code": "SD14",
+        "IDPs": 70900,
+        "HHs": 14039,
+        "by_state_of_origin": {
+          "Aj Jazirah": 10643,
+          "Blue Nile": 13720,
+          "Central Darfur": 0,
+          "East Darfur": 0,
+          "Gedaref": 0,
+          "Kassala": 0,
+          "Khartoum": 41563,
+          "North Darfur": 0,
+          "North Kordofan": 19,
+          "Northern": 0,
+          "Red Sea": 0,
+          "River Nile": 0,
+          "Sennar": 4955,
+          "South Darfur": 0,
+          "South Kordofan": 0,
+          "West Darfur": 0,
+          "West Kordofan": 0,
+          "White Nile": 0
+        },
+        "nationality": {
+          "Sudanese": 70900,
+          "Non_Sudanese": 0
+        }
+      },
+      {
+        "state_of_displacement": "South Darfur",
+        "state_code": "SD03",
+        "IDPs": 1844359,
+        "HHs": 373140,
+        "by_state_of_origin": {
+          "Aj Jazirah": 170,
+          "Blue Nile": 0,
+          "Central Darfur": 15029,
+          "East Darfur": 17287,
+          "Gedaref": 0,
+          "Kassala": 0,
+          "Khartoum": 18167,
+          "North Darfur": 36573,
+          "North Kordofan": 0,
+          "Northern": 0,
+          "Red Sea": 0,
+          "River Nile": 0,
+          "Sennar": 0,
+          "South Darfur": 1741868,
+          "South Kordofan": 50,
+          "West Darfur": 15203,
+          "West Kordofan": 0,
+          "White Nile": 12
+        },
+        "nationality": {
+          "Sudanese": 1844359,
+          "Non_Sudanese": 0
+        }
+      },
+      {
+        "state_of_displacement": "South Kordofan",
+        "state_code": "SD07",
+        "IDPs": 388075,
+        "HHs": 72511,
+        "by_state_of_origin": {
+          "Aj Jazirah": 2515,
+          "Blue Nile": 507,
+          "Central Darfur": 282,
+          "East Darfur": 0,
+          "Gedaref": 0,
+          "Kassala": 0,
+          "Khartoum": 51543,
+          "North Darfur": 45,
+          "North Kordofan": 11719,
+          "Northern": 0,
+          "Red Sea": 0,
+          "River Nile": 190,
+          "Sennar": 330,
+          "South Darfur": 309038,
+          "South Kordofan": 10,
+          "West Darfur": 11812,
+          "West Kordofan": 84,
+          "White Nile": 387500
+        },
+        "nationality": {
+          "Sudanese": 387500,
+          "Non_Sudanese": 575
+        }
+      },
+      {
+        "state_of_displacement": "West Darfur",
+        "state_code": "SD04",
+        "IDPs": 362187,
+        "HHs": 72808,
+        "by_state_of_origin": {
+          "Aj Jazirah": 2150,
+          "Blue Nile": 0,
+          "Central Darfur": 19685,
+          "East Darfur": 2840,
+          "Gedaref": 40,
+          "Kassala": 0,
+          "Khartoum": 45535,
+          "North Darfur": 18500,
+          "North Kordofan": 830,
+          "Northern": 0,
+          "Red Sea": 0,
+          "River Nile": 100,
+          "Sennar": 14500,
+          "South Darfur": 5,
+          "South Kordofan": 257137,
+          "West Darfur": 755,
+          "West Kordofan": 110,
+          "White Nile": 362187
+        },
+        "nationality": {
+          "Sudanese": 362187,
+          "Non_Sudanese": 0
+        }
+      },
+      {
+        "state_of_displacement": "West Kordofan",
+        "state_code": "SD18",
+        "IDPs": 400113,
+        "HHs": 73884,
+        "by_state_of_origin": {
+          "Aj Jazirah": 425,
+          "Blue Nile": 241,
+          "Central Darfur": 539,
+          "East Darfur": 14525,
+          "Gedaref": 0,
+          "Kassala": 0,
+          "Khartoum": 68190,
+          "North Darfur": 4856,
+          "North Kordofan": 9181,
+          "Northern": 0,
+          "Red Sea": 0,
+          "River Nile": 0,
+          "Sennar": 0,
+          "South Darfur": 1282,
+          "South Kordofan": 13622,
+          "West Darfur": 61,
+          "West Kordofan": 287036,
+          "White Nile": 155
+        },
+        "nationality": {
+          "Sudanese": 399273,
+          "Non_Sudanese": 840
+        }
+      },
+      {
+        "state_of_displacement": "White Nile",
+        "state_code": "SD09",
+        "IDPs": 459029,
+        "HHs": 90566,
+        "by_state_of_origin": {
+          "Aj Jazirah": 884,
+          "Blue Nile": 5166,
+          "Central Darfur": 5859,
+          "East Darfur": 2675,
+          "Gedaref": 0,
+          "Kassala": 0,
+          "Khartoum": 392111,
+          "North Darfur": 2842,
+          "North Kordofan": 6462,
+          "Northern": 0,
+          "Red Sea": 0,
+          "River Nile": 5942,
+          "Sennar": 1849,
+          "South Darfur": 3115,
+          "South Kordofan": 240,
+          "West Darfur": 10472,
+          "West Kordofan": 21412,
+          "White Nile": 370664
+        },
+        "nationality": {
+          "Sudanese": 370664,
+          "Non_Sudanese": 88365
+        }
+      },
+      {
+          "state_of_displacement": "Total",
+          "state_code": "N/A",
+          "IDPs": 9584349,
+          "HHs": 1920360,
+          "by_state_of_origin": {
+            "Aj Jazirah": 212518,
+            "Blue Nile": 230490,
+            "Central Darfur": 756655,
+            "East Darfur": 206175,
+            "Gedaref": 7914,
+            "Kassala": 6825,
+            "Khartoum": 2740539,
+            "North Darfur": 1988107,
+            "North Kordofan": 128732,
+            "Northern": 7326,
+            "Red Sea": 25064,
+            "River Nile": 15514,
+            "Sennar": 85780,
+            "South Darfur": 2060294,
+            "South Kordofan": 377201,
+            "West Darfur": 371772,
+            "West Kordofan": 334810,
+            "White Nile": 28633
+          },
+          "nationality": {
+            "Sudanese": 9475082,
+            "Non_Sudanese": 109267
+          }
+        }
+    ]
+  }
+
+
