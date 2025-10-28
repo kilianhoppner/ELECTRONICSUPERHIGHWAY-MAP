@@ -3,37 +3,38 @@
 // =========================
 
 // Map positioning & scaling
-let mapShiftX = 0;             
-let mapScaleFactor = 0.73;    
-let mapVerticalOffset = 0.125; 
+let mapShiftX = 0;
+let mapScaleFactor = 0.73;
+let mapVerticalOffset = 0.125;
 
 // Grid and text styling
-let gridStep = 2;         
-let gridDash = [3, 5];    
-let gridStroke = [220, 130];
-let gridLabelOffset = 12;  
+let gridStep = 2;
+let gridDash = [3, 5];
+let gridStroke = [75];
+let gridLabelOffset = 12;
 let gridFontPath = 'typefaces/SohneMono-Leicht.otf';
 let gridFontSize = 11;
 
 // Map appearance
-let strokeWeightMap = 1.1; 
-let fontSize = 9.8;         
+let strokeWeightMap = 1.1;
+let fontSize = 9.8;
 let condensedFontPath = 'typefaces/authentic-sans-condensed-60.otf';
 
-// Solar irradiance gradient (NW dark red → SE light yellow/green)
-const solarGradientColors = [
-  [255, 0, 0],     
-  [255, 90, 0],    
-  [255, 120, 0],   
-  [255, 190, 0],   
-  [200, 255, 50]   
-];
-
 // Agent settings
-let agentScaleFactor = 0.00003; 
-let agentSize = 11; 
+let agentScaleFactor = 0.00003;
+let agentSize = 11;
 let agentSpeed = 10; // pixels per second
 let rotationSpeed = 3.0; // radians per second for smooth rotation
+
+// =========================
+// --- COUNTRY LABEL ---
+// =========================
+let countryLabel = "Sudan";
+let countryLabelFontPath = 'typefaces/authentic-sans-90.otf'; // updated font
+let countryLabelSize = 13;
+let countryLabelColor = [135]; // grey
+let countryLabelX, countryLabelY;
+let countryLabelFont;
 
 // =========================
 // --- STATE NAME MAPPING ---
@@ -69,7 +70,9 @@ let stateCentroids = {};
 let mapScale, offsetX, offsetY;
 let lonMin, lonMax, latMin, latMax;
 let condensedFont, customFont;
-let isPaused = false; 
+let topographyImg;
+let maskGraphics;
+let isPaused = false;
 let showMap = true;
 let lastTime = 0;
 
@@ -77,10 +80,12 @@ let lastTime = 0;
 // --- SETUP & DRAW ---
 // =========================
 function preload() {
-  sudanGeo = loadJSON('map.json');
-  idpData = loadJSON('data.json'); 
-  condensedFont = loadFont(condensedFontPath); 
+  sudanGeo = loadJSON('map.json'); // your geojson
+  idpData = loadJSON('data.json'); // your IDP data
+  condensedFont = loadFont(condensedFontPath);
   customFont = loadFont(gridFontPath);
+  countryLabelFont = loadFont(countryLabelFontPath); // preload updated label font
+  topographyImg = loadImage('topography.png');
 }
 
 function setup() {
@@ -90,6 +95,10 @@ function setup() {
   prepareAgents();
   frameRate(60);
   lastTime = millis();
+  
+  // center the country label on canvas
+  countryLabelX = width / 2;
+  countryLabelY = height / 2;
 }
 
 function windowResized() {
@@ -97,30 +106,207 @@ function windowResized() {
   calculateProjection();
   calculateCentroids();
   prepareAgents();
+  countryLabelX = width / 2;
+  countryLabelY = height / 2;
 }
 
 // =========================
 // --- MAIN DRAW ---
 // =========================
 function draw() {
-  background(0);
+  background(0); // changeable for visibility
   let currentTime = millis();
   let deltaTimeSec = (currentTime - lastTime) / 1000.0;
   lastTime = currentTime;
 
+  // --- Draw map (only if visible) ---
   if (sudanGeo && showMap) {
-    drawSolarMapGradient();  
-    drawGeoJSON(sudanGeo);  
-    drawLabels(sudanGeo);
+    drawTopography();         // clipped to outer border
+    drawGeoJSON(sudanGeo);    // state outlines
+    drawLabels(sudanGeo);     // state labels
+    drawCountryLabel();       // central country label
   }
 
+  // --- Grid stays visible whether map is hidden or not ---
   drawGrid();
 
+  // --- Agents animation or static display ---
   if (!isPaused) {
     updateAndDrawAgents(deltaTimeSec);
   } else {
     drawAgentsOnly();
   }
+
+  // --- Compass & Scale Bar ALWAYS visible ---
+  drawCompassAndScaleBar();
+}
+
+// =========================
+// --- COMPASS & SCALE BAR ---
+// =========================
+function drawCompassAndScaleBar() {
+  push();
+  let padding = 0;
+  let compassRadius = 11.3; // slightly smaller compass
+
+  // --- Determine nice scale bar length dynamically ---
+  let mapWidthKm = (lonMax - lonMin) * 111.32 * Math.cos(radians((latMin + latMax) / 2));
+  let targetLengthKm = mapWidthKm / 6;
+  let niceSteps = [50, 100, 200, 500, 1000, 2000, 5000];
+  let scaleBarLengthKm = niceSteps.find(s => s >= targetLengthKm) || niceSteps[niceSteps.length - 1];
+  let pixelsPerKm = distanceInPixels(scaleBarLengthKm);
+
+  // --- Position aligned relative to latitude/longitude grid ---
+  let [gridRightX, gridBottomY] = project(lonMax, latMin);
+  let [gridLeftX, gridTopY] = project(lonMin, latMax);
+
+  let scaleX = gridRightX - pixelsPerKm - 15;
+  let scaleY = gridBottomY + 5;
+
+  // Place compass above and right-aligned with scale bar
+  let compassX = scaleX + pixelsPerKm; // right edge of scale bar
+  let compassY = scaleY - 28 - compassRadius; // higher above scale bar
+
+  // --- Scale bar (alternating filled rectangles) ---
+  strokeWeight(0.1);
+  let increments = 4;
+  let blockWidth = pixelsPerKm / increments;
+  let blockHeight = 6;
+
+  rectMode(CORNER);
+  for (let i = 0; i < increments; i++) {
+    let bx = scaleX + i * blockWidth;
+    if (i % 2 === 0) {
+      fill(0);
+    } else {
+      fill(255);
+    }
+    rect(bx, scaleY - blockHeight / 2, blockWidth, blockHeight);
+    noFill();
+    stroke(255);
+    rect(bx, scaleY - blockHeight / 2, blockWidth, blockHeight);
+  }
+
+  // Outer outline
+  noFill();
+  stroke(255);
+  rect(scaleX, scaleY - blockHeight / 2, pixelsPerKm, blockHeight);
+
+  // --- Labels ABOVE block edges ---
+  noStroke();
+  fill(255);
+  textAlign(CENTER, BOTTOM);
+  textSize(9);
+  for (let i = 0; i <= increments; i++) {
+    let lx = scaleX + i * blockWidth;
+    let label = Math.round((scaleBarLengthKm / increments) * i);
+    if (i === increments) label += "km";
+    text(label, lx, scaleY - blockHeight / 2 - 4);
+  }
+
+  // --- Compass as a cross ---
+  stroke(255);
+  strokeWeight(0.4);
+  // vertical line (North)
+  line(compassX, compassY - compassRadius, compassX, compassY + compassRadius);
+  // horizontal line (East-West)
+  line(compassX - compassRadius, compassY, compassX + compassRadius, compassY);
+
+  fill(255);
+  noStroke();
+  textAlign(CENTER, BOTTOM);
+  textSize(9);
+  text('N', compassX, compassY - compassRadius - 1.7);
+
+  pop();
+}
+
+// --- Convert km distance to pixels based on map scale ---
+function distanceInPixels(km) {
+  let centerLat = (latMin + latMax) / 2;
+  let kmPerDeg = 111.32;
+  let deg = km / kmPerDeg;
+  let [x0, y0] = project(lonMin, centerLat);
+  let [x1, y1] = project(lonMin + deg, centerLat);
+  return abs(x1 - x0);
+}
+
+
+
+
+// =========================
+// --- DRAW COUNTRY LABEL ---
+// =========================
+function drawCountryLabel() {
+  if (!showMap) return; // hide if map is hidden
+
+  textFont(countryLabelFont);
+  textSize(countryLabelSize);
+  textAlign(CENTER, CENTER);
+  
+  // measure the text
+  let w = textWidth(countryLabel);
+  let h = countryLabelSize; // roughly font size is height
+
+  // draw white box behind text
+  noStroke();
+  fill(255);
+  rectMode(CENTER);
+  rect(countryLabelX, countryLabelY, w, h);
+
+  // draw text
+  fill(...countryLabelColor);
+  text(countryLabel, countryLabelX, countryLabelY);
+}
+
+// =========================
+// --- DRAW TOPOGRAPHY CLIPPED TO OUTER BORDER ---
+// =========================
+function drawTopography() {
+  if (!topographyImg || !sudanGeo) return;
+
+  let clipped = createGraphics(width, height);
+  clipped.pixelDensity(1);
+  clipped.clear();
+  clipped.noStroke();
+  let ctx = clipped.drawingContext;
+  ctx.save();
+
+  ctx.beginPath();
+  for (let feature of sudanGeo.features) {
+    let geom = feature.geometry;
+    if (geom.type === "Polygon") {
+      addPathPointsToContext(ctx, geom.coordinates[0]);
+    } else if (geom.type === "MultiPolygon") {
+      for (let poly of geom.coordinates) {
+        addPathPointsToContext(ctx, poly[0]);
+      }
+    }
+  }
+  ctx.clip();
+
+  clipped.imageMode(CORNERS);
+  let [x0, y0] = project(lonMin, latMax);
+  let [x1, y1] = project(lonMax, latMin);
+  clipped.image(topographyImg, x0, y0, x1, y1);
+
+  ctx.restore();
+  imageMode(CORNER);
+  image(clipped, 0, 0);
+  clipped.remove();
+}
+
+function addPathPointsToContext(ctx, ring) {
+  if (!ring || ring.length === 0) return;
+  let first = ring[0];
+  let p = project(first[0], first[1]);
+  ctx.moveTo(p[0], p[1]);
+  for (let i = 1; i < ring.length; i++) {
+    let c = ring[i];
+    let pt = project(c[0], c[1]);
+    ctx.lineTo(pt[0], pt[1]);
+  }
+  ctx.closePath();
 }
 
 // =========================
@@ -151,48 +337,9 @@ function drawAgentTriangle(a) {
 // --- KEYBOARD HANDLING ---
 // =========================
 function keyPressed() {
-  if (key === ' ') {
-    isPaused = !isPaused;
-  }
-  if (key === 'F' || key === 'f') {
-    let fs = fullscreen();
-    fullscreen(!fs);
-  }
-  if (key === 'H' || key === 'h') {
-    showMap = !showMap;
-  }
-}
-
-// =========================
-// --- SOLAR GRADIENT ---
-// =========================
-function drawSolarMapGradient() {
-  const colors = solarGradientColors.map(c => color(...c));
-  noStroke();
-
-  for (let feature of sudanGeo.features) {
-    let geom = feature.geometry;
-    let polygons = (geom.type === "Polygon") ? [geom.coordinates] : geom.coordinates;
-
-    for (let poly of polygons) {
-      beginShape();
-      for (let c of poly[0]) {
-        let lon = c[0];
-        let lat = c[1];
-        let [x, y] = project(lon, lat);
-        let tLon = map(lon, lonMin, lonMax, 0.3, 1); 
-        let tLat = map(lat, latMin, latMax, 1, 0); 
-        let t = (0.45 * tLon + 0.75 * tLat) / 1.2;
-        t = constrain(t, 0, 1);
-        let idx = floor(t * (colors.length - 1));
-        let frac = t * (colors.length - 1) - idx;
-        let cColor = lerpColor(colors[idx], colors[min(idx + 1, colors.length - 1)], frac);
-        fill(cColor);
-        vertex(x, y);
-      }
-      endShape(CLOSE);
-    }
-  }
+  if (key === ' ') isPaused = !isPaused;
+  if (key === 'F' || key === 'f') fullscreen(!fullscreen());
+  if (key === 'H' || key === 'h') showMap = !showMap;
 }
 
 // =========================
@@ -250,9 +397,9 @@ function drawPolygon(coords) {
 // =========================
 function drawLabels(geo) {
   noStroke();
-  fill(0);
+  fill(255, 0, 0);
   textSize(fontSize);
-  textFont(condensedFont); 
+  textFont(condensedFont);
   textAlign(CENTER, CENTER);
 
   const splitStates = {
@@ -342,9 +489,9 @@ function drawGrid() {
   }
 
   drawingContext.setLineDash([]);
-  textFont(customFont); 
+  textFont(customFont);
   textSize(gridFontSize);
-  fill(220,130);
+  fill(75);
   noStroke();
 
   textAlign(RIGHT, CENTER);
@@ -431,7 +578,7 @@ function prepareAgents() {
 
 function randomPointInPolygons(polygons) {
   for (let tries = 0; tries < 1000; tries++) {
-    let poly = polygons[floor(random(polygons.length))][0]; 
+    let poly = polygons[floor(random(polygons.length))][0];
     let xs = poly.map(c => project(c[0], c[1])[0]);
     let ys = poly.map(c => project(c[0], c[1])[1]);
     let minX = min(xs), maxX = max(xs), minY = min(ys), maxY = max(ys);
@@ -450,11 +597,7 @@ function updateAndDrawAgents(dt) {
   for (let a of agents) {
     if (a.pauseFrames > 0) {
       a.pauseFrames--;
-
-      // Trigger rotation only AFTER pause finishes
-      if (a.pauseFrames === 0) {
-        a.targetRotation = a.rotation + PI; // smooth 180° flip
-      }
+      if (a.pauseFrames === 0) a.targetRotation = a.rotation + PI;
     } else {
       let dx = a.currentTarget[0] - a.x;
       let dy = a.currentTarget[1] - a.y;
@@ -464,17 +607,14 @@ function updateAndDrawAgents(dt) {
       if (distToTarget > step) {
         a.x += dx * (step / distToTarget);
         a.y += dy * (step / distToTarget);
-        a.targetRotation = atan2(dy, dx); // face movement direction
+        a.targetRotation = atan2(dy, dx);
       } else {
-        // Swap target, then start pause
         a.currentTarget = (a.currentTarget === a.targetPos) ? a.originPos : a.targetPos;
-        a.pauseFrames = 120; // pause before rotation
+        a.pauseFrames = 120;
       }
     }
 
-    // Smooth rotation interpolation
     a.rotation = lerpAngle(a.rotation, a.targetRotation, min(1, rotationSpeed * dt));
-
     drawAgentTriangle(a);
   }
 }
@@ -491,7 +631,7 @@ function pointInPolygon(point, vs) {
     let xi = vs[i][0], yi = vs[i][1];
     let xj = vs[j][0], yj = vs[j][1];
     let intersect = ((yi > y) != (yj > y)) &&
-                    (x < (xj - xi) * (y - yi) / (yj - yi + 0.0000001) + xi);
+      (x < (xj - xi) * (y - yi) / (yj - yi + 0.0000001) + xi);
     if (intersect) inside = !inside;
   }
   return inside;
