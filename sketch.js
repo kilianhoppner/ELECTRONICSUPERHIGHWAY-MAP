@@ -74,6 +74,7 @@ let topographyImg;
 let maskGraphics;
 let isPaused = false;
 let showMap = true;
+let showTrajectories = false; // new toggle for agent paths
 let lastTime = 0;
 
 // =========================
@@ -130,6 +131,11 @@ function draw() {
   // --- Grid stays visible whether map is hidden or not ---
   drawGrid();
 
+  // --- Draw agent trajectories if toggled ---
+  if (showTrajectories) {
+    drawAgentTrajectories();
+  }
+
   // --- Agents animation or static display ---
   if (!isPaused) {
     updateAndDrawAgents(deltaTimeSec);
@@ -160,7 +166,7 @@ function drawCompassAndScaleBar() {
   let [gridRightX, gridBottomY] = project(lonMax, latMin);
   let [gridLeftX, gridTopY] = project(lonMin, latMax);
 
-  let scaleX = gridRightX - pixelsPerKm - 15;
+  let scaleX = gridRightX - pixelsPerKm - 20;
   let scaleY = gridBottomY + 5;
 
   // Place compass above and right-aligned with scale bar
@@ -179,22 +185,22 @@ function drawCompassAndScaleBar() {
     if (i % 2 === 0) {
       fill(0);
     } else {
-      fill(255);
+      fill(30);
     }
     rect(bx, scaleY - blockHeight / 2, blockWidth, blockHeight);
     noFill();
-    stroke(255);
+    stroke(245);
     rect(bx, scaleY - blockHeight / 2, blockWidth, blockHeight);
   }
 
   // Outer outline
   noFill();
-  stroke(255);
+  stroke(245);
   rect(scaleX, scaleY - blockHeight / 2, pixelsPerKm, blockHeight);
 
   // --- Labels ABOVE block edges ---
   noStroke();
-  fill(255);
+  fill(245);
   textAlign(CENTER, BOTTOM);
   textSize(9);
   for (let i = 0; i <= increments; i++) {
@@ -205,14 +211,14 @@ function drawCompassAndScaleBar() {
   }
 
   // --- Compass as a cross ---
-  stroke(255);
+  stroke(245);
   strokeWeight(0.4);
   // vertical line (North)
   line(compassX, compassY - compassRadius, compassX, compassY + compassRadius);
   // horizontal line (East-West)
   line(compassX - compassRadius, compassY, compassX + compassRadius, compassY);
 
-  fill(255);
+  fill(245);
   noStroke();
   textAlign(CENTER, BOTTOM);
   textSize(9);
@@ -231,9 +237,6 @@ function distanceInPixels(km) {
   return abs(x1 - x0);
 }
 
-
-
-
 // =========================
 // --- DRAW COUNTRY LABEL ---
 // =========================
@@ -250,7 +253,7 @@ function drawCountryLabel() {
 
   // draw white box behind text
   noStroke();
-  fill(255);
+  fill(245);
   rectMode(CENTER);
   rect(countryLabelX, countryLabelY, w, h);
 
@@ -334,12 +337,92 @@ function drawAgentTriangle(a) {
 }
 
 // =========================
+// --- DRAW AGENT TRAJECTORIES DYNAMICALLY ---
+// =========================
+function drawAgentTrajectories() {
+  stroke(0, 255, 0);
+  strokeWeight(1);
+  for (let a of agents) {
+    line(a.originPos[0], a.originPos[1], a.x, a.y);
+  }
+}
+
+// =========================
 // --- KEYBOARD HANDLING ---
 // =========================
 function keyPressed() {
   if (key === ' ') isPaused = !isPaused;
   if (key === 'F' || key === 'f') fullscreen(!fullscreen());
   if (key === 'H' || key === 'h') showMap = !showMap;
+  if (key === 'L' || key === 'l') showTrajectories = !showTrajectories; // toggle trajectories
+  if (key === 'E' || key === 'e') exportTrajectoriesSVG(); // export trajectories as SVG
+}
+
+// =========================
+// --- EXPORT AGENT TRAJECTORIES AS SVG ---
+// =========================
+function exportTrajectoriesSVG() {
+  if (agents.length === 0) {
+    console.log("No agents to export.");
+    return;
+  }
+
+  // Determine bounds (min/max)
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+  for (let a of agents) {
+    let x1 = a.originPos[0];
+    let y1 = a.originPos[1];
+    let x2 = a.targetPos[0];
+    let y2 = a.targetPos[1];
+    minX = Math.min(minX, x1, x2);
+    minY = Math.min(minY, y1, y2);
+    maxX = Math.max(maxX, x1, x2);
+    maxY = Math.max(maxY, y1, y2);
+  }
+
+  // Add small padding around edges
+  let padding = 0;
+  minX -= padding;
+  minY -= padding;
+  maxX += padding;
+  maxY += padding;
+
+  let widthSVG = maxX - minX;
+  let heightSVG = maxY - minY;
+
+  // SVG header with calculated viewBox
+  let svgHeader = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n`;
+  svgHeader += `<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="${widthSVG}" height="${heightSVG}" viewBox="${minX} ${minY} ${widthSVG} ${heightSVG}">\n`;
+
+  // Add individual black lines
+  let svgContent = "";
+  for (let a of agents) {
+    let x1 = a.originPos[0];
+    let y1 = a.originPos[1];
+    let x2 = a.targetPos[0];
+    let y2 = a.targetPos[1];
+    svgContent += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="black" stroke-width="1" />\n`;
+  }
+
+  // SVG footer
+  let svgFooter = `</svg>`;
+
+  // Combine
+  let svgData = svgHeader + svgContent + svgFooter;
+
+  // Create and download
+  let blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+  let url = URL.createObjectURL(blob);
+  let link = document.createElement("a");
+  link.href = url;
+  link.download = "agent_trajectories.svg";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+
+  console.log("SVG exported with bounding box: agent_trajectories.svg");
 }
 
 // =========================
