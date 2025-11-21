@@ -153,7 +153,8 @@ function draw() {
 function drawCompassAndScaleBar() {
   push();
   let padding = 0;
-  let compassRadius = 11.3; // slightly smaller compass
+  let baseCompassRadius = 11.3; // original radius
+  let compassRadius = baseCompassRadius * (mapScale / 40); // scale with map
 
   // --- Determine nice scale bar length dynamically ---
   let mapWidthKm = (lonMax - lonMin) * 111.32 * Math.cos(radians((latMin + latMax) / 2));
@@ -171,22 +172,19 @@ function drawCompassAndScaleBar() {
 
   // Place compass above and right-aligned with scale bar
   let compassX = scaleX + pixelsPerKm; // right edge of scale bar
-  let compassY = scaleY - 28 - compassRadius; // higher above scale bar
+  let compassY = scaleY - 28 * (mapScale / 40) - compassRadius; // scale vertical offset too
 
   // --- Scale bar (alternating filled rectangles) ---
-  strokeWeight(0.1);
+  strokeWeight(0.1 * (mapScale / 40));
   let increments = 4;
   let blockWidth = pixelsPerKm / increments;
-  let blockHeight = 6;
+  let blockHeight = 6 * (mapScale / 40); // scale block height
 
   rectMode(CORNER);
   for (let i = 0; i < increments; i++) {
     let bx = scaleX + i * blockWidth;
-    if (i % 2 === 0) {
-      fill(0);
-    } else {
-      fill(30);
-    }
+    if (i % 2 === 0) fill(0);
+    else fill(30);
     rect(bx, scaleY - blockHeight / 2, blockWidth, blockHeight);
     noFill();
     stroke(245);
@@ -202,17 +200,17 @@ function drawCompassAndScaleBar() {
   noStroke();
   fill(245);
   textAlign(CENTER, BOTTOM);
-  textSize(9);
+  textSize(9 * (mapScale / 40));
   for (let i = 0; i <= increments; i++) {
     let lx = scaleX + i * blockWidth;
     let label = Math.round((scaleBarLengthKm / increments) * i);
     if (i === increments) label += "km";
-    text(label, lx, scaleY - blockHeight / 2 - 4);
+    text(label, lx, scaleY - blockHeight / 2 - 4 * (mapScale / 40));
   }
 
   // --- Compass as a cross ---
   stroke(245);
-  strokeWeight(0.4);
+  strokeWeight(0.4 * (mapScale / 40));
   // vertical line (North)
   line(compassX, compassY - compassRadius, compassX, compassY + compassRadius);
   // horizontal line (East-West)
@@ -221,8 +219,8 @@ function drawCompassAndScaleBar() {
   fill(245);
   noStroke();
   textAlign(CENTER, BOTTOM);
-  textSize(9);
-  text('N', compassX, compassY - compassRadius - 1.7);
+  textSize(9 * (mapScale / 40)); // scale 'N' label
+  text('N', compassX, compassY - compassRadius - 1.7 * (mapScale / 40));
 
   pop();
 }
@@ -243,13 +241,15 @@ function distanceInPixels(km) {
 function drawCountryLabel() {
   if (!showMap) return; // hide if map is hidden
 
+  // Scale country label font size with map
+  let scaledLabelSize = countryLabelSize * (mapScale / 40); // adjust divisor to taste
   textFont(countryLabelFont);
-  textSize(countryLabelSize);
+  textSize(scaledLabelSize);
   textAlign(CENTER, CENTER);
   
   // measure the text
   let w = textWidth(countryLabel);
-  let h = countryLabelSize; // roughly font size is height
+  let h = scaledLabelSize; // roughly font size is height
 
   // draw white box behind text
   noStroke();
@@ -311,14 +311,15 @@ function addPathPointsToContext(ctx, ring) {
   }
   ctx.closePath();
 }
-
 // =========================
-// --- DRAW AGENTS ONLY ---
+// --- AGENTS (SCALED) ---
 // =========================
 function drawAgentsOnly() {
+  // visual stroke scaled to map
+  let scaledStroke = 1 * (mapScale / 50);
+  strokeWeight(scaledStroke);
   fill(0, 255, 0);
   stroke(0);
-  strokeWeight(1);
   for (let a of agents) {
     drawAgentTriangle(a);
   }
@@ -328,22 +329,54 @@ function drawAgentTriangle(a) {
   push();
   translate(a.x, a.y);
   rotate(a.rotation + PI / 2);
+  // scale agent size proportionally with map
+  let scaledSize = agentSize * (mapScale / 40);
   beginShape();
-  vertex(0, -agentSize * 0.5);
-  vertex(-agentSize * 0.5, agentSize * 0.5);
-  vertex(agentSize * 0.5, agentSize * 0.5);
+  vertex(0, -scaledSize * 0.5);
+  vertex(-scaledSize * 0.5, scaledSize * 0.5);
+  vertex(scaledSize * 0.5, scaledSize * 0.5);
   endShape(CLOSE);
   pop();
 }
 
-// =========================
-// --- DRAW AGENT TRAJECTORIES DYNAMICALLY ---
-// =========================
 function drawAgentTrajectories() {
+  // trajectory stroke scaled to match agents
+  let scaledStroke = 1 * (mapScale / 50);
   stroke(0, 255, 0);
-  strokeWeight(1);
+  strokeWeight(scaledStroke);
   for (let a of agents) {
     line(a.originPos[0], a.originPos[1], a.x, a.y);
+  }
+}
+
+function updateAndDrawAgents(dt) {
+  // keep same movement behaviour, but draw with scaled stroke/size
+  let scaledStroke = 1 * (mapScale / 50);
+  strokeWeight(scaledStroke);
+  fill(0, 255, 0);
+  stroke(0);
+
+  for (let a of agents) {
+    if (a.pauseFrames > 0) {
+      a.pauseFrames--;
+      if (a.pauseFrames === 0) a.targetRotation = a.rotation + PI;
+    } else {
+      let dx = a.currentTarget[0] - a.x;
+      let dy = a.currentTarget[1] - a.y;
+      let distToTarget = sqrt(dx * dx + dy * dy);
+      let step = agentSpeed * dt; // movement unchanged (pixels/sec)
+      if (distToTarget > step) {
+        a.x += dx * (step / distToTarget);
+        a.y += dy * (step / distToTarget);
+        a.targetRotation = atan2(dy, dx);
+      } else {
+        a.currentTarget = (a.currentTarget === a.targetPos) ? a.originPos : a.targetPos;
+        a.pauseFrames = 120;
+      }
+    }
+
+    a.rotation = lerpAngle(a.rotation, a.targetRotation, min(1, rotationSpeed * dt));
+    drawAgentTriangle(a);
   }
 }
 
@@ -481,7 +514,10 @@ function drawPolygon(coords) {
 function drawLabels(geo) {
   noStroke();
   fill(255, 0, 0);
-  textSize(fontSize);
+
+  // Scale label font size with map
+  let scaledFontSize = fontSize * (mapScale / 40); // adjust divisor to taste
+  textSize(scaledFontSize);
   textFont(condensedFont);
   textAlign(CENTER, CENTER);
 
@@ -500,8 +536,8 @@ function drawLabels(geo) {
       let [cx, cy] = polygonCentroid(ring);
       if (splitStates[name]) {
         let lines = splitStates[name];
-        text(lines[0], cx, cy - fontSize / 2);
-        text(lines[1], cx, cy + fontSize / 2);
+        text(lines[0], cx, cy - scaledFontSize / 2);
+        text(lines[1], cx, cy + scaledFontSize / 2);
       } else {
         text(name, cx, cy);
       }
@@ -551,7 +587,7 @@ function getBounds(geo) {
 // =========================
 function drawGrid() {
   stroke(...gridStroke);
-  strokeWeight(1);
+  strokeWeight(1 * (mapScale / 40));
   drawingContext.setLineDash(gridDash);
 
   let lonMinR = Math.floor(lonMin);
@@ -571,23 +607,27 @@ function drawGrid() {
     line(x1, y1, x2, y2);
   }
 
-  drawingContext.setLineDash([]);
-  textFont(customFont);
-  textSize(gridFontSize);
-  fill(75);
-  noStroke();
+drawingContext.setLineDash([]);
 
-  textAlign(RIGHT, CENTER);
-  for (let lat = latMinR; lat <= latMaxR; lat += gridStep) {
-    let [x, y] = project(lonMinR, lat);
-    text(lat + "°N", x - gridLabelOffset, y);
-  }
+// scale grid label text with map
+let scaledGridFontSize = gridFontSize * (mapScale / 40);
 
-  textAlign(CENTER, TOP);
-  for (let lon = lonMinR; lon <= lonMaxR; lon += gridStep) {
-    let [x, y] = project(lon, latMinR);
-    text(lon + "°E", x, y + gridLabelOffset);
-  }
+textFont(customFont);
+textSize(scaledGridFontSize);
+fill(75);
+noStroke();
+
+textAlign(RIGHT, CENTER);
+for (let lat = latMinR; lat <= latMaxR; lat += gridStep) {
+  let [x, y] = project(lonMinR, lat);
+  text(lat + "°N", x - gridLabelOffset, y);
+}
+
+textAlign(CENTER, TOP);
+for (let lon = lonMinR; lon <= lonMaxR; lon += gridStep) {
+  let [x, y] = project(lon, latMinR);
+  text(lon + "°E", x, y + gridLabelOffset);
+}
 }
 
 // =========================
@@ -672,35 +712,6 @@ function randomPointInPolygons(polygons) {
   return polygonCentroid(polygons[0][0]);
 }
 
-function updateAndDrawAgents(dt) {
-  fill(0, 255, 0);
-  stroke(0);
-  strokeWeight(1);
-
-  for (let a of agents) {
-    if (a.pauseFrames > 0) {
-      a.pauseFrames--;
-      if (a.pauseFrames === 0) a.targetRotation = a.rotation + PI;
-    } else {
-      let dx = a.currentTarget[0] - a.x;
-      let dy = a.currentTarget[1] - a.y;
-      let distToTarget = sqrt(dx * dx + dy * dy);
-      let step = agentSpeed * dt;
-
-      if (distToTarget > step) {
-        a.x += dx * (step / distToTarget);
-        a.y += dy * (step / distToTarget);
-        a.targetRotation = atan2(dy, dx);
-      } else {
-        a.currentTarget = (a.currentTarget === a.targetPos) ? a.originPos : a.targetPos;
-        a.pauseFrames = 120;
-      }
-    }
-
-    a.rotation = lerpAngle(a.rotation, a.targetRotation, min(1, rotationSpeed * dt));
-    drawAgentTriangle(a);
-  }
-}
 
 function lerpAngle(a, b, t) {
   let diff = (b - a + PI) % (2 * PI) - PI;
@@ -718,4 +729,11 @@ function pointInPolygon(point, vs) {
     if (intersect) inside = !inside;
   }
   return inside;
+}
+
+// =========================
+// --- MOUSE HANDLING ---
+// =========================
+function mousePressed() {
+  fullscreen(!fullscreen());
 }
