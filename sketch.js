@@ -489,7 +489,7 @@ function project(lon, lat) {
 function drawGeoJSON(geo) {
   noFill();
   stroke(0);
-  strokeWeight(strokeWeightMap);
+  strokeWeight(strokeWeightMap * (mapScale / 40)); // scale stroke with map
   for (let feature of geo.features) {
     let geom = feature.geometry;
     if (geom.type === "Polygon") drawPolygon(geom.coordinates);
